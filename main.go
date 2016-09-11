@@ -4,23 +4,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/garyburd/redigo/redis"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/s3"
 
 	"github.com/albert-wang/rawr-discordbot/chat"
 	"github.com/albert-wang/rawr-discordbot/config"
 	"github.com/albert-wang/rawr-discordbot/handlers"
 )
 
-type CommandHandler func(*discordgo.MessageCreate, []string) error;
+var mapping map[string]handlers.CommandHandler = map[string]handlers.CommandHandler{}
 
-var mapping map[string]CommandHandler = map[string]CommandHandler{}
-
-func help(m *discordgo.MessageCreate, args []string) {
-	msg := "This is NVG-Tan. A listing of commands follows.";
+func help(m *discordgo.MessageCreate, args []string) error {
+	msg := "This is NVG-Tan. A listing of commands follows."
 	res := []string{}
 	for k, _ := range mapping {
 		res = append(res, k)
@@ -34,7 +34,7 @@ func help(m *discordgo.MessageCreate, args []string) {
 func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	args := strings.Split(m.Content, " ")
 	if len(args) == 0 {
-		return 
+		return
 	}
 
 	cmd := args[0]
@@ -73,10 +73,16 @@ func main() {
 		},
 	}
 
+	auth, err := aws.GetAuth(config.AWSAccessKey, config.AWSSecret)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	handlers.S3Client = s3.New(auth, aws.USEast)
+
 	// Begin setting up the handlers here
 	mapping["help"] = help
-
-
+	mapping["smug"] = handlers.RandomS3ImageFrom("img.rawr.moe", "smug")
 
 	mux := http.NewServeMux()
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
