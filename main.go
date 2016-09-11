@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ func help(m *discordgo.MessageCreate, args []string) error {
 	msg = msg + " " + strings.Join(res, ", ")
 
 	chat.SendMessageToChannel(m.ChannelID, msg)
+	return nil
 }
 
 func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -46,12 +48,16 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	handler, ok := mapping[cmd[1:]]
 	if ok {
-		handler(m, args)
+		err := handler(m, args)
+		if err != nil {
+			log.Print(err)
+		}
 	}
 }
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	rand.Seed(time.Now().Unix())
 
 	var err error
 	config.LoadConfigFromFileAndENV("config.json")
@@ -82,7 +88,7 @@ func main() {
 
 	// Begin setting up the handlers here
 	mapping["help"] = help
-	mapping["smug"] = handlers.RandomS3ImageFrom("img.rawr.moe", "smug")
+	mapping["smug"] = handlers.RandomS3ImageFrom("img.rawr.moe", "smug/")
 
 	mux := http.NewServeMux()
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
