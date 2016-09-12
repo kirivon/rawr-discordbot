@@ -39,7 +39,19 @@ func GetChannelInformation(channelID string) (*discordgo.Channel, error) {
 
 // SendMessageToChannel sends a message to a channelID.
 func SendMessageToChannel(channelID string, message string) {
-	client.ChannelMessageSend(channelID, message)
+	_, err := client.ChannelMessageSend(channelID, message)
+	if err != nil {
+		log.Print(err)
+	}
+}
+
+func SendPrivateMessageTo(user string, message string) {
+	ch, err := client.UserChannelCreate(user)
+	if err != nil {
+		log.Print(err)
+	}
+
+	SendMessageToChannel(ch.ID, message)
 }
 
 // ShowTypingUntilChannelIsClosed will display the bot as typing something in

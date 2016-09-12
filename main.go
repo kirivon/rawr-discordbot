@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 )
 
 var mapping map[string]handlers.CommandHandler = map[string]handlers.CommandHandler{}
+var argSplit *regexp.Regexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 func help(m *discordgo.MessageCreate, args []string) error {
 	msg := "This is NVG-Tan. A listing of commands follows."
@@ -34,7 +36,9 @@ func help(m *discordgo.MessageCreate, args []string) error {
 }
 
 func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	args := strings.Split(m.Content, " ")
+	handlers.WriteToFile(m, nil)
+
+	args := argSplit.FindAllString(m.Content, -1)
 	if len(args) == 0 {
 		return
 	}
@@ -46,12 +50,18 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	if m.Author.Username == "NVG-Tan" {
+		return
+	}
+
 	handler, ok := mapping[cmd[1:]]
 	if ok {
-		err := handler(m, args)
-		if err != nil {
-			log.Print(err)
-		}
+		go func() {
+			err := handler(m, args)
+			if err != nil {
+				log.Print(err)
+			}
+		}()
 	}
 }
 
@@ -89,6 +99,10 @@ func main() {
 	// Begin setting up the handlers here
 	mapping["help"] = help
 	mapping["smug"] = handlers.RandomS3ImageFrom("img.rawr.moe", "smug/")
+	mapping["search"] = handlers.Search
+	mapping["search-help"] = handlers.SearchHelp
+	mapping["countdown"] = handlers.Countdown
+	//mapping["anime"] = handlers.AnimeStatus
 
 	mux := http.NewServeMux()
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
