@@ -105,10 +105,11 @@ func main() {
 	//mapping["anime"] = handlers.AnimeStatus
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/searchresult", handlers.SearchResults)
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
 
 	log.Printf("Listening on :%s", config.InternalBindPort)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", config.InternalBindPort), mux)
+	err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", config.InternalBindPort), mux)
 	if err != nil {
 		log.Print(err)
 	}

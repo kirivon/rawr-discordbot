@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,7 +37,7 @@ func WriteToFile(m *discordgo.MessageCreate, args []string) error {
 		}
 
 		conn.Do("ZADD", makeKey("chatlog"), time.Now().UTC().Unix(), fmt.Sprintf("%d\x01%s\x01%s%s",
-			time.Now().UTC().Unix(), m.Author.Username, m.Content, fileMsg))
+			time.Now().UTC().Unix(), m.Author.Username, m.ContentWithMentionsReplaced(), fileMsg))
 
 		// Only store the past year worth of data.
 		conn.Do("ZREMRANGEBYSCORE", makeKey("chatlog"), 0, time.Now().UTC().Add(-1*time.Hour*24*356).Unix())
@@ -162,12 +164,13 @@ func Search(m *discordgo.MessageCreate, args []string) error {
 
 	before := []string{}
 	result := []string{}
-	matches := 0
+	allResults := []string{}
 
 	afterCount := int64(-1)
 	for _, v := range strs {
 		if afterCount == context {
-			chat.SendPrivateMessageTo(m.Author.ID, "```"+strings.Join(before, "\n")+"\n"+strings.Join(result, "\n")+"````")
+			allResults = append(allResults, strings.Join(before, "\n")+"\n"+strings.Join(result, "\n"))
+
 			before = []string{}
 			result = []string{}
 			afterCount = int64(-1)
@@ -202,7 +205,7 @@ func Search(m *discordgo.MessageCreate, args []string) error {
 			continue
 		}
 
-		if r.Match([]byte(searchableMessage)) && matches < 16 {
+		if r.Match([]byte(searchableMessage)) {
 			if len(before) > 0 {
 				before = before[1:]
 			}
@@ -216,10 +219,46 @@ func Search(m *discordgo.MessageCreate, args []string) error {
 	}
 
 	if afterCount >= 0 {
-		log.Print(before)
-		log.Print(result)
-		chat.SendPrivateMessageTo(m.Author.ID, "```"+strings.Join(before, "\n")+"\n"+strings.Join(result, "\n")+"````")
+		allResults = append(allResults, strings.Join(before, "\n")+"\n"+strings.Join(result, "\n"))
+	}
+
+	if len(allResults) == 0 {
+		chat.SendPrivateMessageTo(m.Author.ID, "No results found. Try broadning your search parameters")
+		return nil
+	} else if len(allResults) < 4 {
+		for _, v := range allResults {
+			chat.SendPrivateMessageTo(m.Author.ID, "```"+v+"```")
+		}
+		return nil
+	} else {
+		accessKey := RandomKey(12)
+		bytes, _ := json.Marshal(allResults)
+		conn.Do("SET", makeKey("searchresults:%s", accessKey), string(bytes), "EX", 60*60)
+
+		msg := fmt.Sprintf("Too many search results to display inline. See http://rawr.moe:14001/searchresult?q=%s for expanded results.", accessKey)
+		chat.SendPrivateMessageTo(m.Author.ID, msg)
 	}
 
 	return nil
+}
+
+func SearchResults(w http.ResponseWriter, r *http.Request) {
+	key := r.FormValue("q")
+	conn := Redis.Get()
+	defer conn.Close()
+
+	bytes, err := redis.Bytes(conn.Do("GET", makeKey("searchresults:%s", key)))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	results := []string{}
+	json.Unmarshal(bytes, &results)
+
+	for _, v := range results {
+		fmt.Fprintf(w, "%s\n\n\n\n", v)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
