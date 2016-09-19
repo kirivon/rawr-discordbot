@@ -10,8 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// RandomS3ImageFrom links a random image from a bucket with the given prefix.
-func RandomS3ImageFrom(bucket string, prefix string) CommandHandler {
+// RandomS3FileFrom links a random file from a bucket with the given prefix.
+func RandomS3FileFrom(bucket string, prefix string) CommandHandler {
 	return func(m *discordgo.MessageCreate, args []string) error {
 		conn := Redis.Get()
 		defer conn.Close()

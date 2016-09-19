@@ -98,18 +98,19 @@ func main() {
 
 	// Begin setting up the handlers here
 	mapping["help"] = help
-	mapping["smug"] = handlers.RandomS3ImageFrom("img.rawr.moe", "smug/")
+	mapping["smug"] = handlers.RandomS3FileFrom("img.rawr.moe", "smug/")
+	mapping["kajiura"] = handlers.RandomS3FileFrom("img.rawr.moe", "music/")
 	mapping["search"] = handlers.Search
 	mapping["search-help"] = handlers.SearchHelp
 	mapping["countdown"] = handlers.Countdown
-	//mapping["anime"] = handlers.AnimeStatus
+	mapping["anime"] = handlers.AnimeStatus
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/searchresult", handlers.SearchResults)
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
 
 	log.Printf("Listening on :%s", config.InternalBindPort)
-	err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", config.InternalBindPort), mux)
+	err = http.ListenAndServe(fmt.Sprintf(":%s", config.InternalBindPort), mux)
 	if err != nil {
 		log.Print(err)
 	}

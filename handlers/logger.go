@@ -231,6 +231,10 @@ func Search(m *discordgo.MessageCreate, args []string) error {
 		}
 		return nil
 	} else {
+		for _, v := range allResults[len(allResults)-3:] {
+			chat.SendPrivateMessageTo(m.Author.ID, "```"+v+"```")
+		}
+
 		accessKey := RandomKey(12)
 		bytes, _ := json.Marshal(allResults)
 		conn.Do("SET", makeKey("searchresults:%s", accessKey), string(bytes), "EX", 60*60)
