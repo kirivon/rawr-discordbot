@@ -133,8 +133,12 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			} else {
 				v.CurrentEpisode = v.CurrentEpisode + delta
 				v.CurrentEpisode = clamp(v.CurrentEpisode, -10, 1000)
-				res[args[1]] = v
 
+				if args[0] == "incr" {
+					v.LastModified = time.Now()
+				}
+
+				res[args[1]] = v
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 			}
 			break
