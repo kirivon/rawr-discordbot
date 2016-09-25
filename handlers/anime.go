@@ -199,6 +199,7 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 
 	if junbiCount == 0 {
 		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK?"))
+		time.Sleep(300 * time.Millisecond)
 		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Type !rdy to confirm!"))
 		junbiCount++
 		return nil
