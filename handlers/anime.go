@@ -211,7 +211,7 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 		junbiCount++
 		return nil
 	} else {
-		Countdown()
+		Countdown(m, []string{"3"})
 		junbiCount = 0
 	}
 	return nil
