@@ -29,7 +29,7 @@ func clamp(v, l, h int64) int64 {
 
 func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	if len(args) < 2 {
-		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <del|mv|incr|decr|set|list|get> <name> [<value>]")
+		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <del|mv|incr|decr|set|list|get|start> <name> [<value>]")
 	}
 
 	conn := Redis.Get()
@@ -39,7 +39,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	res := map[string]animeStatus{}
 	deserialize(conn, key, &res)
 
-	// Supports del, mv, incr, decr, set, list
+	// Supports del, mv, incr, decr, set, list, start
 	switch args[0] {
 	case "del":
 		{
@@ -152,6 +152,29 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 
 			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
 		}
+	case "start":
+		{
+			if len(args) != 2 {
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: !anime %s <name>", args[0]))
+				return nil
+			}
+
+			delta := int64(1)
+			v, ok := res[args[1]]
+
+			if !ok {
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: !anime %s <name> requires a valid name", args[0]))
+				return nil
+			} else {
+				v.CurrentEpisode = v.CurrentEpisode + delta
+				v.CurrentEpisode = clamp(v.CurrentEpisode, -10, 1000)
+				v.LastModified = time.Now()
+				res[args[1]] = v
+				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Starting %s episode %d.", v.Name, v.CurrentEpisode))
+				time.Sleep(300 * time.Millisecond)
+				junbiCount(m, []string{"3"})
+			}
+		}
 	}
 
 	serialize(conn, key, &res)
@@ -198,9 +221,7 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 	}
 
 	if junbiCount == 0 {
-		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK?"))
-		time.Sleep(300 * time.Millisecond)
-		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Type !rdy to confirm!"))
+		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
 		junbiCount++
 		return nil
 	}
