@@ -70,7 +70,6 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			delete(res, args[1])
 			break
 		}
-
 	case "set":
 		{
 			if len(args) != 3 {
@@ -97,7 +96,6 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 			break
 		}
-
 	case "get":
 		{
 			if len(args) != 2 {
@@ -112,9 +110,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			}
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 		}
-
-	case "incr":
-	case "decr":
+	case "incr", "decr":
 		{
 			if len(args) != 2 {
 				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: !anime %s <name>", args[0]))
@@ -141,7 +137,6 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				res[args[1]] = v
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 			}
-			break
 		}
 	case "list":
 		{
