@@ -167,7 +167,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				res[args[1]] = v
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Starting %s episode %d.", v.Name, v.CurrentEpisode))
 				time.Sleep(300 * time.Millisecond)
-				junbiCount(m, []string{"3"})
+				JunbiOK(m, []string{"3"})
 			}
 		}
 	}
