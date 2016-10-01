@@ -223,8 +223,6 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 }
 
 func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
-	var err error
-
 	if junbiInitiated != true {
 		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Countdown has not been initiated! Type !junbiok to begin!"))
 		return nil
