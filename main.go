@@ -104,7 +104,6 @@ func main() {
 	mapping["search-help"] = handlers.SearchHelp
 	mapping["countdown"] = handlers.Countdown
 	mapping["anime"] = handlers.AnimeStatus
-	mapping["junbiok"] = handlers.JunbiOK
 	mapping["rdy"] = handlers.JunbiRdy
 
 	mux := http.NewServeMux()
