@@ -202,11 +202,14 @@ func Countdown(m *discordgo.MessageCreate, args []string) error {
 
 var (
 	junbiCount, junbiMembers int64
+	junbiInitiated           bool
 )
 
 func JunbiOK(m *discordgo.MessageCreate, args []string) error {
-	junbiMembers = 3
 	var err error
+	junbiCount = 1
+	junbiMembers = 3
+	junbiInitiated = true
 
 	if len(args) == 1 {
 		junbiMembers, err = strconv.ParseInt(args[0], 10, 64)
@@ -215,20 +218,27 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 		}
 	}
 
-	if junbiCount == 0 {
-		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
-		junbiCount++
+	chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
+	return nil
+}
+
+func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
+	var err error
+
+	if junbiInitiated != true {
+		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Countdown has not been initiated! Type !junbiok to begin!"))
 		return nil
+	} else {
+		junbiCount++
 	}
 
 	if junbiCount < junbiMembers {
 		count := int64(junbiMembers - junbiCount)
 		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Waiting on %d more!", count))
-		junbiCount++
 		return nil
 	} else {
 		Countdown(m, []string{"3"})
-		junbiCount = 0
+		junbiInitiated = false
 	}
 	return nil
 }
