@@ -285,14 +285,12 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 	conn := Redis.Get()
 	defer conn.Close()
 
-	//Read values from the Redis database, creates key on per-chat basis
+	//Overwrites any existing value for junbiStatus
 	key := makeKey("junbistatus:%s", m.ChannelID)
 	res := junbiStatus{true, args}
+	serialize(conn, key, &res)
 
 	chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
-
-	//Write the modified value to the Redis database
-	serialize(conn, key, &res)
 	return nil
 }
 
@@ -301,7 +299,7 @@ func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
 	conn := Redis.Get()
 	defer conn.Close()
 
-	//Read values from the Redis database, creates key on per-chat basis
+	//Read values from the Redis database
 	key := makeKey("junbistatus:%s", m.ChannelID)
 	res := junbiStatus{}
 	deserialize(conn, key, &res)
