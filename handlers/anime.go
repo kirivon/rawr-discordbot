@@ -288,7 +288,6 @@ func JunbiOK(m *discordgo.MessageCreate, args []string) error {
 	//Read values from the Redis database, creates key on per-chat basis
 	key := makeKey("junbistatus:%s", m.ChannelID)
 	res := junbiStatus{true, args}
-	deserialize(conn, key, &res)
 
 	chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
 
