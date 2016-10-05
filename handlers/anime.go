@@ -13,14 +13,14 @@ import (
 type animeStatus struct {
 	Name           string
 	CurrentEpisode int64
-	Members        []string
+	Members        map[string]string
 	LastModified   time.Time
 }
 
 //Defines types used in JunbiOK and JunbiRdy
 type junbiStatus struct {
 	Initialized bool
-	Members     []string
+	Members     map[string]string
 }
 
 //Constrains passed value to specified range
@@ -49,6 +49,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	//Read values from the Redis database, creates key on per-chat basis
 	key := makeKey("animestatus:%s", m.ChannelID)
 	res := map[string]animeStatus{}
+	usr := map[string]string{}
 	deserialize(conn, key, &res)
 
 	// Supports add, drop, del, incr, decr, set, rename, get, list, start
@@ -63,18 +64,20 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 
 			//Checks to see if specified anime exists, adds new entry if it does not
 			v, ok := res[args[1]]
+
 			if !ok {
-				res[args[1]] = animeStatus{args[1], 0, []string{m.Author.ID}, time.Now()}
+				usr[m.Author.ID] = m.Author.Username
+				res[args[1]] = animeStatus{args[1], 0, usr, time.Now()}
 			} else {
 				//Checks to see if the user has already added this anime
-				for _, n := range v.Members {
+				for n, _ := range v.Members {
 					if n == m.Author.ID {
 						chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("You have already added %s.", args[1]))
 						return nil
 					}
 				}
-				//Adds user to Members
-				v.Members = append(v.Members, m.Message.ID)
+				//Adds user to Members of specified anime
+				v.Members[m.Author.ID] = m.Author.Username
 				res[args[1]] = v
 			}
 		}
@@ -93,15 +96,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				return nil
 			}
 
-			//Removes user from AnimeStatus.Members of specified anime
-			i := 0
-			for _, n := range v.Members {
-				if n != m.Author.ID {
-					v.Members[i] = n
-					i++
-				}
-			}
-			v.Members = v.Members[:i]
+			//Removes user from Members of specified anime
+			delete(v.Members, m.Author.ID)
 			res[args[1]] = v
 
 			//Deletes anime if zero members are present after drop
@@ -280,7 +276,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 }
 
 //Initializes the values for JunbiRdy (!rdy), sends ready message to channel
-func JunbiOK(m *discordgo.MessageCreate, args []string) error {
+func JunbiOK(m *discordgo.MessageCreate, args map[string]string) error {
 	//Open connection to Redis server
 	conn := Redis.Get()
 	defer conn.Close()
@@ -311,14 +307,7 @@ func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
 	}
 
 	//Removes user from junbiStatus.Members
-	i := 0
-	for _, n := range res.Members {
-		if n != m.Author.ID {
-			res.Members[i] = n
-			i++
-		}
-	}
-	res.Members = res.Members[:i]
+	delete(res.Members, m.Author.ID)
 
 	//Displays the remaining members that haven't confirmed with !rdy
 	if len(res.Members) != 0 {
