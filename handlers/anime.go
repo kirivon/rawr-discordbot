@@ -38,8 +38,9 @@ func clamp(v, l, h int64) int64 {
 
 func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	//Message user with list of commands if no command is specified
-	if len(args) < 2 {
+	if len(args) < 1 {
 		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]")
+		return nil
 	}
 
 	//Open connection to Redis server
