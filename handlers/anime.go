@@ -316,12 +316,11 @@ func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
 			message += fmt.Sprintf("%s\t", n)
 		}
 		chat.SendMessageToChannel(m.ChannelID, message)
-		return nil
+	} else {
+		//Resets Initialized flag to false, starts countdown
+		res.Initialized = false
+		Countdown(m, []string{"3"})
 	}
-
-	//Resets Initialized flag to false, starts countdown
-	res.Initialized = false
-	Countdown(m, []string{"3"})
 
 	//Write the modified value to the Redis database
 	serialize(conn, key, &res)
