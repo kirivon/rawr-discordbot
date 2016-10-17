@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"strconv"
+	"strings"
+	"text/template"
 	"time"
 
 	"github.com/albert-wang/rawr-discordbot/chat"
@@ -13,6 +17,10 @@ type animeStatus struct {
 	Name           string
 	CurrentEpisode int64
 	LastModified   time.Time
+}
+
+func (a *animeStatus) FormattedTime() string {
+	return a.LastModified.Format("Mon, January 02")
 }
 
 func clamp(v, l, h int64) int64 {
@@ -28,14 +36,14 @@ func clamp(v, l, h int64) int64 {
 }
 
 func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
-	if len(args) < 2 {
-		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <del|mv|incr|decr|set|list|get> <name> [<value>]")
+	if len(args) < 1 {
+		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <del|mv|incr|decr|set|list> <name> [<value>]")
 	}
 
 	conn := Redis.Get()
 	defer conn.Close()
 
-	key := makeKey("animestatus:%s", m.Author.ID)
+	key := makeKey("animestatus")
 	res := map[string]animeStatus{}
 	deserialize(conn, key, &res)
 
@@ -97,24 +105,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 			break
 		}
-
-	case "get":
-		{
-			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime get <name>")
-				return nil
-			}
-
-			v, ok := res[args[1]]
-			if !ok {
-				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s doesn't exist, try list", args[1]))
-				return nil
-			}
-			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
-		}
-
-	case "incr":
-	case "decr":
+	case "decr", "incr":
 		{
 			if len(args) != 2 {
 				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: !anime %s <name>", args[0]))
@@ -145,12 +136,45 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		}
 	case "list":
 		{
-			message := ""
-			for _, v := range res {
-				message += fmt.Sprintf("\t%s\t%d\t%s\n", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02"))
+			tplText := `Markdown
+{{ pad .Len " " "Title" }} | Episode | Last Updated
+{{ pad .Len "-" "-----" }}-+---------+-------------
+{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
+{{ end }}`
+
+			buff := bytes.NewBuffer(nil)
+
+			tpl, err := template.New("anime").Funcs(template.FuncMap{
+				"pad": func(amount int, spacer string, val string) string {
+					if len(val) < amount {
+						return strings.Repeat(spacer, amount-len(val)) + val
+					}
+
+					return val
+				},
+			}).Parse(tplText)
+
+			if err != nil {
+				chat.SendMessageToChannel(m.ChannelID, err.Error())
 			}
 
-			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
+			maximumTitle := 0
+			for _, v := range res {
+				if len(v.Name) > maximumTitle {
+					maximumTitle = len(v.Name)
+				}
+			}
+
+			err = tpl.Execute(buff, map[string]interface{}{
+				"Animes": res,
+				"Len":    maximumTitle,
+			})
+
+			if err != nil {
+				log.Print(err)
+			}
+
+			chat.SendMessageToChannel(m.ChannelID, "```"+buff.String()+"```")
 		}
 	}
 
