@@ -244,11 +244,12 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		}
 	case "list":
 		{
+			//Builds list of existing anime
 			tplText := `Markdown
-{{ pad .Len " " "Title" }} | Episode | Last Updated
-{{ pad .Len "-" "-----" }}-+---------+-------------
-{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
-{{ end }}`
+			{{ pad .Len " " "Title" }} | Episode | Members | Last Updated
+			{{ pad .Len "-" "-----" }}-+---------+---------+-------------
+			{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{with $x :=  len .Members | printf "%d" }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
+			{{ end }}`
 
 			buff := bytes.NewBuffer(nil)
 
@@ -257,7 +258,6 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 					if len(val) < amount {
 						return strings.Repeat(spacer, amount-len(val)) + val
 					}
-
 					return val
 				},
 			}).Parse(tplText)
@@ -282,19 +282,9 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				log.Print(err)
 			}
 
+			//Outputs list to chat in codeblock form
 			chat.SendMessageToChannel(m.ChannelID, "```"+buff.String()+"```")
 		}
-		//	case "list":
-		//		{
-		//Builds list of existing anime
-		//			message := "\tName\tLast Ep\tMembers\tLast Watched\n"
-		//			for _, v := range res {
-		//				message += fmt.Sprintf("\t%s\t%d\t%d\t%s\n", v.Name, v.CurrentEpisode, len(v.Members), v.LastModified.Format("Mon, January 02"))
-		//			}
-
-		//Outputs list to chat in codeblock form
-		//			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
-		//		}
 	case "start":
 		{
 			//Sends error to user if there are insufficient arguments
