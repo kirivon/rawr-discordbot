@@ -1,8 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"strconv"
+	"strings"
+	"text/template"
 	"time"
 
 	"github.com/albert-wang/rawr-discordbot/chat"
@@ -21,6 +25,10 @@ type animeStatus struct {
 type junbiStatus struct {
 	Initialized bool
 	Members     map[string]string
+}
+
+func (a *animeStatus) FormattedTime() string {
+	return a.LastModified.Format("Mon, January 02")
 }
 
 //Constrains passed value to specified range
@@ -47,8 +55,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	conn := Redis.Get()
 	defer conn.Close()
 
-	//Read values from the Redis database, creates key on per-chat basis
-	key := makeKey("animestatus:%s", m.ChannelID)
+	//Read values from the Redis database, creates key
+	key := makeKey("animestatus")
 	res := map[string]animeStatus{}
 	usr := map[string]string{}
 	deserialize(conn, key, &res)
@@ -236,15 +244,57 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		}
 	case "list":
 		{
-			//Builds list of existing anime
-			message := "\tName\tLast Ep\tMembers\tLast Watched\n"
-			for _, v := range res {
-				message += fmt.Sprintf("\t%s\t%d\t%d\t%s\n", v.Name, v.CurrentEpisode, len(v.Members), v.LastModified.Format("Mon, January 02"))
+			tplText := `Markdown
+{{ pad .Len " " "Title" }} | Episode | Last Updated
+{{ pad .Len "-" "-----" }}-+---------+-------------
+{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
+{{ end }}`
+
+			buff := bytes.NewBuffer(nil)
+
+			tpl, err := template.New("anime").Funcs(template.FuncMap{
+				"pad": func(amount int, spacer string, val string) string {
+					if len(val) < amount {
+						return strings.Repeat(spacer, amount-len(val)) + val
+					}
+
+					return val
+				},
+			}).Parse(tplText)
+
+			if err != nil {
+				chat.SendMessageToChannel(m.ChannelID, err.Error())
 			}
 
-			//Outputs list to chat in codeblock form
-			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
+			maximumTitle := 0
+			for _, v := range res {
+				if len(v.Name) > maximumTitle {
+					maximumTitle = len(v.Name)
+				}
+			}
+
+			err = tpl.Execute(buff, map[string]interface{}{
+				"Animes": res,
+				"Len":    maximumTitle,
+			})
+
+			if err != nil {
+				log.Print(err)
+			}
+
+			chat.SendMessageToChannel(m.ChannelID, "```"+buff.String()+"```")
 		}
+		//	case "list":
+		//		{
+		//Builds list of existing anime
+		//			message := "\tName\tLast Ep\tMembers\tLast Watched\n"
+		//			for _, v := range res {
+		//				message += fmt.Sprintf("\t%s\t%d\t%d\t%s\n", v.Name, v.CurrentEpisode, len(v.Members), v.LastModified.Format("Mon, January 02"))
+		//			}
+
+		//Outputs list to chat in codeblock form
+		//			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
+		//		}
 	case "start":
 		{
 			//Sends error to user if there are insufficient arguments
