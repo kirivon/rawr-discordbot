@@ -246,10 +246,10 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Builds list of existing anime
 			tplText := `Markdown
-			{{ pad .Len " " "Title" }} | Episode | Members | Last Updated
-			{{ pad .Len "-" "-----" }}-+---------+---------+-------------
-			{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{with $x :=  len .Members | printf "%d" }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
-			{{ end }}`
+{{ pad .Len " " "Title" }} | Episode | Members | Last Updated
+{{ pad .Len "-" "-----" }}-+---------+---------+-------------
+{{ range .Animes }}{{ pad $.Len " " .Name }} | {{ with $x := printf "%d" .CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{with $x :=  len .Members | printf "%d" }}{{ pad 7 " " $x }}{{ end }} | {{ .LastModified.Format "Mon, January 02" }}
+{{ end }}`
 
 			buff := bytes.NewBuffer(nil)
 
