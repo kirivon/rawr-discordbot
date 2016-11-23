@@ -44,6 +44,19 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	cmd := args[0]
 	args = args[1:]
 
+	if cmd == "!anime" {
+		handler, ok := mapping[cmd]
+		if ok {
+			go func() {
+				err := handler(m, args)
+				if err != nil {
+					log.Print(err)
+				}
+			}()
+		}
+		return
+	}
+
 	if !strings.HasPrefix(cmd, ".") {
 		return
 	}
@@ -60,6 +73,7 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 				log.Print(err)
 			}
 		}()
+		return
 	}
 }
 
@@ -93,6 +107,7 @@ func main() {
 	mapping["search-help"] = handlers.SearchHelp
 	mapping["countdown"] = handlers.Countdown
 	mapping["anime"] = handlers.AnimeStatus
+	mapping["!anime"] = handlers.AnimeStatusLegacy
 	mapping["rdy"] = handlers.JunbiRdy
 
 	mux := http.NewServeMux()
