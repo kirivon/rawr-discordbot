@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/albert-wang/rawr-discordbot/chat"
 	"github.com/bwmarrin/discordgo"
 	"github.com/garyburd/redigo/redis"
+	"github.com/kirivon/rawr-discordbot/chat"
 )
 
 func WriteToFile(m *discordgo.MessageCreate, args []string) error {

@@ -11,19 +11,17 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/garyburd/redigo/redis"
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/s3"
 
-	"github.com/albert-wang/rawr-discordbot/chat"
-	"github.com/albert-wang/rawr-discordbot/config"
-	"github.com/albert-wang/rawr-discordbot/handlers"
+	"github.com/kirivon/rawr-discordbot/chat"
+	"github.com/kirivon/rawr-discordbot/config"
+	"github.com/kirivon/rawr-discordbot/handlers"
 )
 
 var mapping map[string]handlers.CommandHandler = map[string]handlers.CommandHandler{}
 var argSplit *regexp.Regexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 func help(m *discordgo.MessageCreate, args []string) error {
-	msg := "This is NVG-Tan. A listing of commands follows."
+	msg := "This is Yuno-tan. A listing of commands follows."
 	res := []string{}
 	for k, _ := range mapping {
 		res = append(res, k)
@@ -46,11 +44,11 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	cmd := args[0]
 	args = args[1:]
 
-	if !strings.HasPrefix(cmd, "!") {
+	if !strings.HasPrefix(cmd, ".") {
 		return
 	}
 
-	if m.Author.Username == "NVG-Tan" {
+	if m.Author.Username == "Yuno-tan" {
 		return
 	}
 
@@ -89,17 +87,8 @@ func main() {
 		},
 	}
 
-	auth, err := aws.GetAuth(config.AWSAccessKey, config.AWSSecret)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	handlers.S3Client = s3.New(auth, aws.USEast)
-
 	// Begin setting up the handlers here
 	mapping["help"] = help
-	mapping["smug"] = handlers.RandomS3FileFrom("img.rawr.moe", "smug/")
-	mapping["kajiura"] = handlers.RandomS3FileFrom("img.rawr.moe", "music/")
 	mapping["search"] = handlers.Search
 	mapping["search-help"] = handlers.SearchHelp
 	mapping["countdown"] = handlers.Countdown

@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/albert-wang/rawr-discordbot/chat"
 	"github.com/bwmarrin/discordgo"
+	"github.com/kirivon/rawr-discordbot/chat"
 )
 
 // RandomS3FileFrom links a random file from a bucket with the given prefix.

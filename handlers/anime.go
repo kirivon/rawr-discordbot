@@ -9,8 +9,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/albert-wang/rawr-discordbot/chat"
 	"github.com/bwmarrin/discordgo"
+	"github.com/kirivon/rawr-discordbot/chat"
 )
 
 //Defines types used in AnimeStatus
