@@ -47,7 +47,7 @@ func clamp(v, l, h int64) int64 {
 func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 	//Message user with list of commands if no command is specified
 	if len(args) < 1 {
-		chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]")
+		chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]")
 		return nil
 	}
 
@@ -67,7 +67,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime add <name>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime add <name>")
 				return nil
 			}
 
@@ -94,14 +94,14 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime drop <name>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime drop <name>")
 				return nil
 			}
 
 			//Checks to see if specified anime exists, aborts if it does not
 			v, ok := res[args[1]]
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 
@@ -118,7 +118,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime del <name>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime del <name>")
 				return nil
 			}
 
@@ -129,7 +129,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 3 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime rename <name> <new>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime rename <name> <new>")
 				return nil
 			}
 
@@ -138,13 +138,13 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 
 			//Checks to see if specified anime exists, aborts if it does not
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 
 			//Checks to see if new desired name exists, aborts if it does
 			if ok2 {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s is already in use, type '!anime list' for a list of shows.", args[2]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s is already in use, type '.anime list' for a list of shows.", args[2]))
 				return nil
 			}
 
@@ -158,7 +158,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: !anime %s <name>", args[0]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Usage: .anime %s <name>", args[0]))
 				return nil
 			}
 
@@ -171,7 +171,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Checks to see if specified anime exists, aborts if it does not
 			v, ok := res[args[1]]
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 
@@ -191,7 +191,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 3 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime set <name> <ep#>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime set <name> <ep#>")
 				return nil
 			}
 
@@ -205,7 +205,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Checks to see if specified anime exists, aborts if it does not
 			v, ok := res[args[1]]
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 			//Updates CurrentEpisode and LastModified
@@ -220,14 +220,14 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime get <name>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime get <name>")
 				return nil
 			}
 
 			//Checks to see if specified anime exists, aborts if it does not
 			v, ok := res[args[1]]
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 			//Builds message
@@ -289,14 +289,14 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 		{
 			//Sends error to user if there are insufficient arguments
 			if len(args) != 2 {
-				chat.SendPrivateMessageTo(m.Author.ID, "Usage: !anime start <name>")
+				chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime start <name>")
 				return nil
 			}
 
 			//Checks to see if specified anime exists, aborts if it does not
 			v, ok := res[args[1]]
 			if !ok {
-				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '!anime list' for a list of shows.", args[1]))
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
 			//Increments episode and sets time to now
@@ -341,9 +341,9 @@ func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
 	res := junbiStatus{}
 	deserialize(conn, key, &res)
 
-	//Aborts the function if !anime start hasn't been called
+	//Aborts the function if .anime start hasn't been called
 	if res.Initialized != true {
-		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("No anime initiated. Type !anime start <name> to begin!"))
+		chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("No anime initiated. Type .anime start <name> to begin!"))
 		return nil
 	}
 
