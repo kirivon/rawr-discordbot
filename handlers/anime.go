@@ -77,6 +77,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			if !ok {
 				usr[m.Author.ID] = m.Author.Username
 				res[args[1]] = animeStatus{args[1], 0, usr, time.Now()}
+				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Added %s.", args[1]))
 			} else {
 				//Checks to see if the user has already added this anime
 				for n, _ := range v.Members {
@@ -88,6 +89,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				//Adds user to Members of specified anime
 				v.Members[m.Author.ID] = m.Author.Username
 				res[args[1]] = v
+				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Added %s.", args[1]))
 			}
 		}
 	case "drop":
@@ -108,10 +110,12 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Removes user from Members of specified anime
 			delete(v.Members, m.Author.ID)
 			res[args[1]] = v
+			chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("Dropped %s.", args[1]))
 
 			//Deletes anime if zero members are present after drop
 			if len(v.Members) == 0 {
 				delete(res, args[1])
+				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
 			}
 		}
 	case "del":
@@ -124,6 +128,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 
 			//Deletes specified anime, regardless of members
 			delete(res, args[1])
+			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
 		}
 	case "rename":
 		{
@@ -153,6 +158,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			res[args[2]] = v
 			//Deletes inintial element after copy
 			delete(res, args[1])
+			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Renamed %s to %s.", args[1], args[2]))
 		}
 	case "incr", "decr":
 		{
@@ -230,17 +236,54 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				chat.SendPrivateMessageTo(m.Author.ID, fmt.Sprintf("%s doesn't exist, type '.anime list' for a list of shows.", args[1]))
 				return nil
 			}
-			//Builds message
-			message := "\tName\tLast Ep\tMembers\tLast Watched\n"
-			message += fmt.Sprintf("\t%s\t%d\t%d\t%s\n", v.Name, v.CurrentEpisode, len(v.Members), v.LastModified.Format("Mon, January 02"))
-			message += fmt.Sprintf("Participants:\t")
-			for _, n := range v.Members {
-				message += fmt.Sprintf("%s\t", n)
-			}
-			message += fmt.Sprintf("\n")
 
-			//Outputs message to chat in codeblock form
-			chat.SendMessageToChannel(m.ChannelID, "```"+message+"```")
+			tplText := `Markdown
+{{ pad .Len " " "Title" }} | Episode | Last Updated
+{{ pad .Len "-" "-----" }}-+---------+-------------
+{{ pad $.Len " " .Anime.Name }} | {{ with $x := printf "%d" .Anime.CurrentEpisode }}{{ pad 7 " " $x }}{{ end }} | {{ .Anime.LastModified.Format "Mon, January 02" }} `
+			buff := bytes.NewBuffer(nil)
+
+			tpl, err := template.New("anime").Funcs(template.FuncMap{
+				"pad": func(amount int, spacer string, val string) string {
+					if len(val) < amount {
+						return strings.Repeat(spacer, amount-len(val)) + val
+					}
+					return val
+				},
+			}).Parse(tplText)
+
+			if err != nil {
+				chat.SendMessageToChannel(m.ChannelID, err.Error())
+			}
+
+			maximumTitle := 0
+			if len(v.Name) > maximumTitle {
+				maximumTitle = len(v.Name)
+			}
+
+			err = tpl.Execute(buff, map[string]interface{}{
+				"Anime": v,
+				"Len":   maximumTitle,
+			})
+
+			if err != nil {
+				log.Print(err)
+			}
+
+			message := fmt.Sprintf("\n" + strings.Repeat("-", maximumTitle) + "-+---------+------------" + "\n")
+			message += fmt.Sprintf("Members: ")
+			i := 1
+			for _, n := range v.Members {
+				if len(v.Members) == i {
+					message += fmt.Sprintf("%s.", n)
+				} else {
+					message += fmt.Sprintf("%s, ", n)
+				}
+				i++
+			}
+
+			//Outputs list to chat in codeblock form
+			chat.SendMessageToChannel(m.ChannelID, "```"+buff.String()+message+"```")
 		}
 	case "list":
 		{
@@ -327,7 +370,7 @@ func JunbiOK(m *discordgo.MessageCreate, args map[string]string) error {
 	res := junbiStatus{true, args}
 	serialize(conn, key, &res)
 
-	chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type !rdy to confirm!"))
+	chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Junbi OK? Type .rdy to confirm!"))
 	return nil
 }
 
@@ -352,11 +395,17 @@ func JunbiRdy(m *discordgo.MessageCreate, args []string) error {
 
 	//Displays the remaining members that haven't confirmed with !rdy
 	if len(res.Members) != 0 {
-		message := fmt.Sprintf("Waiting on:\t")
+		message := fmt.Sprintf("Waiting on: ")
+		i := 1
 		for _, n := range res.Members {
-			message += fmt.Sprintf("%s\t", n)
+			if len(res.Members) == i {
+				message += fmt.Sprintf("%s.", n)
+			} else {
+				message += fmt.Sprintf("%s, ", n)
+			}
 		}
 		chat.SendMessageToChannel(m.ChannelID, message)
+		i++
 	} else {
 		//Resets Initialized flag to false, starts countdown
 		res.Initialized = false
