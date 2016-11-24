@@ -11,6 +11,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/kirivon/rawr-discordbot/chat"
+	"github.com/kirivon/rawr-discordbot/config"
 )
 
 //Defines types used in AnimeStatus
@@ -45,6 +46,8 @@ func clamp(v, l, h int64) int64 {
 }
 
 func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
+	config.LoadConfigFromFileAndENV("config.json")
+
 	//Message user with list of commands if no command is specified
 	if len(args) < 1 {
 		chat.SendPrivateMessageTo(m.Author.ID, "Usage: .anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]")
@@ -78,6 +81,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				usr[m.Author.ID] = m.Author.Username
 				res[args[1]] = animeStatus{args[1], 0, usr, time.Now()}
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Added %s.", args[1]))
+				//Upadates Legacy Bot's list
+				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s 0", args[1]))
 			} else {
 				//Checks to see if the user has already added this anime
 				for n, _ := range v.Members {
@@ -116,6 +121,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			if len(v.Members) == 0 {
 				delete(res, args[1])
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
+				//Upadates Legacy Bot's list
+				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
 			}
 		}
 	case "del":
@@ -129,6 +136,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Deletes specified anime, regardless of members
 			delete(res, args[1])
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
+			//Upadates Legacy Bot's list
+			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
 		}
 	case "rename":
 		{
@@ -159,6 +168,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Deletes inintial element after copy
 			delete(res, args[1])
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Renamed %s to %s.", args[1], args[2]))
+			//Upadates Legacy Bot's list
+			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime mv %s %s", args[1], args[2]))
 		}
 	case "incr", "decr":
 		{
@@ -192,6 +203,14 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Updates res then sends the new value to chat
 			res[args[1]] = v
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
+
+			if args[0] == "incr" {
+				//Upadates Legacy Bot's list
+				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
+			} else {
+				//Upadates Legacy Bot's list
+				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime decr %s", args[1]))
+			}
 		}
 	case "set":
 		{
@@ -221,6 +240,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Updates res then sends the new value to chat
 			res[args[1]] = v
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
+			//Upadates Legacy Bot's list
+			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s %s", args[1], args[2]))
 		}
 	case "get":
 		{
@@ -270,7 +291,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				log.Print(err)
 			}
 
-			message := fmt.Sprintf("\n" + strings.Repeat("-", maximumTitle) + "-+---------+------------" + "\n")
+			message := fmt.Sprintf("\n" + strings.Repeat("-", maximumTitle) + "-+---------+-------------" + "\n")
 			message += fmt.Sprintf("Members: ")
 			i := 1
 			for _, n := range v.Members {
@@ -352,6 +373,8 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			//Sleeps then calls JunbiOK
 			time.Sleep(300 * time.Millisecond)
 			JunbiOK(m, v.Members)
+			//Upadates Legacy Bot's list
+			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
 		}
 	}
 	//Write the modified value to the Redis database

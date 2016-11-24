@@ -16,19 +16,15 @@ var BotToken string
 // Redis server used as a cache and rate limiter
 var RedisServerAddress string
 
-// Access key to get s3 stuff.
-var AWSAccessKey string
-
-// Secret key to s3 stuff.
-var AWSSecret string
+// User-ID for associated bots
+var AssociatedBotID string
 
 // configData is used to temporarily hold values read from a config file
 type configData struct {
 	InternalBindPort   string
 	BotToken           string
 	RedisServerAddress string
-	AWSAccessKey       string
-	AWSSecret          string
+	AssociatedBotID    string
 }
 
 // LoadConfigFromFileAndENV creates a new Config object by first reading in
@@ -49,7 +45,6 @@ func LoadConfigFromFileAndENV(path string) error {
 	InternalBindPort = conf.InternalBindPort
 	BotToken = conf.BotToken
 	RedisServerAddress = conf.RedisServerAddress
-	AWSAccessKey = conf.AWSAccessKey
-	AWSSecret = conf.AWSSecret
+	AssociatedBotID = conf.AssociatedBotID
 	return nil
 }

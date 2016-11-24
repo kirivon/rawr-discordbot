@@ -21,13 +21,8 @@ var mapping map[string]handlers.CommandHandler = map[string]handlers.CommandHand
 var argSplit *regexp.Regexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 func help(m *discordgo.MessageCreate, args []string) error {
-	msg := "This is Yuno-tan. A listing of commands follows."
-	res := []string{}
-	for k, _ := range mapping {
-		res = append(res, k)
-	}
-
-	msg = msg + " " + strings.Join(res, ", ")
+	msg := "This is Yuno-tan. A listing of commands follows:\n"
+	msg += ".anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]"
 
 	chat.SendMessageToChannel(m.ChannelID, msg)
 	return nil
@@ -44,6 +39,10 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	cmd := args[0]
 	args = args[1:]
 
+	if m.Author.Username == "Yuno-tan" {
+		return
+	}
+
 	if cmd == "!anime" {
 		handler, ok := mapping[cmd]
 		if ok {
@@ -58,10 +57,6 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if !strings.HasPrefix(cmd, ".") {
-		return
-	}
-
-	if m.Author.Username == "Yuno-tan" {
 		return
 	}
 
@@ -103,9 +98,6 @@ func main() {
 
 	// Begin setting up the handlers here
 	mapping["help"] = help
-	mapping["search"] = handlers.Search
-	mapping["search-help"] = handlers.SearchHelp
-	mapping["countdown"] = handlers.Countdown
 	mapping["anime"] = handlers.AnimeStatus
 	mapping["!anime"] = handlers.AnimeStatusLegacy
 	mapping["rdy"] = handlers.JunbiRdy
