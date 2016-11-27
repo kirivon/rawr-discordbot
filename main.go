@@ -22,7 +22,8 @@ var argSplit *regexp.Regexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 func help(m *discordgo.MessageCreate, args []string) error {
 	msg := "This is Yuno-tan. A listing of commands follows:\n"
-	msg += ".anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]"
+	msg += ".anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]\n"
+	msg += ".g or .google <value>"
 
 	chat.SendMessageToChannel(m.ChannelID, msg)
 	return nil
@@ -101,6 +102,8 @@ func main() {
 	mapping["anime"] = handlers.AnimeStatus
 	mapping["!anime"] = handlers.AnimeStatusLegacy
 	mapping["rdy"] = handlers.JunbiRdy
+	mapping["g"] = handlers.GoogleSearch
+	mapping["google"] = handlers.GoogleSearch
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/searchresult", handlers.SearchResults)

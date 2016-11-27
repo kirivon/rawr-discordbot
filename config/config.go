@@ -19,12 +19,20 @@ var RedisServerAddress string
 // User-ID for associated bots
 var AssociatedBotID string
 
+// Google API Key used by Google search function
+var GoogleAPIKey string
+
+// Custom Search Engine ID used by Google search function
+var SearchEngineID string
+
 // configData is used to temporarily hold values read from a config file
 type configData struct {
 	InternalBindPort   string
 	BotToken           string
 	RedisServerAddress string
 	AssociatedBotID    string
+	GoogleAPIKey       string
+	SearchEngineID     string
 }
 
 // LoadConfigFromFileAndENV creates a new Config object by first reading in
@@ -46,5 +54,7 @@ func LoadConfigFromFileAndENV(path string) error {
 	BotToken = conf.BotToken
 	RedisServerAddress = conf.RedisServerAddress
 	AssociatedBotID = conf.AssociatedBotID
+	GoogleAPIKey = conf.GoogleAPIKey
+	SearchEngineID = conf.SearchEngineID
 	return nil
 }
