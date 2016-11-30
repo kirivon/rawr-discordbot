@@ -40,6 +40,10 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	cmd := args[0]
 	args = args[1:]
 
+	if m.Author.Username == "Yuno-tan" {
+		return
+	}
+
 	if cmd == "!anime" {
 		handler, ok := mapping[cmd]
 		if ok {
@@ -54,10 +58,6 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if !strings.HasPrefix(cmd, ".") {
-		return
-	}
-
-	if m.Author.Username == "Yuno-tan" {
 		return
 	}
 
@@ -99,9 +99,6 @@ func main() {
 
 	// Begin setting up the handlers here
 	mapping["help"] = help
-	mapping["search"] = handlers.Search
-	mapping["search-help"] = handlers.SearchHelp
-	mapping["countdown"] = handlers.Countdown
 	mapping["anime"] = handlers.AnimeStatus
 	mapping["!anime"] = handlers.AnimeStatusLegacy
 	mapping["rdy"] = handlers.JunbiRdy
