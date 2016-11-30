@@ -21,13 +21,9 @@ var mapping map[string]handlers.CommandHandler = map[string]handlers.CommandHand
 var argSplit *regexp.Regexp = regexp.MustCompile("'.+'|\".+\"|\\S+")
 
 func help(m *discordgo.MessageCreate, args []string) error {
-	msg := "This is Yuno-tan. A listing of commands follows."
-	res := []string{}
-	for k, _ := range mapping {
-		res = append(res, k)
-	}
-
-	msg = msg + " " + strings.Join(res, ", ")
+	msg := "This is Yuno-tan. A listing of commands follows:\n"
+	msg += ".anime <add|drop|del|incr|decr|set|rename|get|list|start> <name> [<value>]\n"
+	msg += "Searches: Google (.g or .google), Google Image (.gi), Youtube (.yt), Safebooru (.sf), MTG (.mtg)"
 
 	chat.SendMessageToChannel(m.ChannelID, msg)
 	return nil
@@ -109,10 +105,23 @@ func main() {
 	mapping["anime"] = handlers.AnimeStatus
 	mapping["!anime"] = handlers.AnimeStatusLegacy
 	mapping["rdy"] = handlers.JunbiRdy
+	mapping["g"] = handlers.GoogleSearch
+	mapping["google"] = handlers.GoogleSearch
+	mapping["gi"] = handlers.GoogleImageSearch
+	mapping["yt"] = handlers.YoutubeSearch
+	mapping["sf"] = handlers.SafebooruSearch
+	mapping["mtg"] = handlers.MTGSearch
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/searchresult", handlers.SearchResults)
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
+
+	//	ticker := time.NewTicker(time.Second * 5)
+	//	go func() {
+	//		for range ticker.C {
+	//			log.Print(time.Now().UTC().Unix())
+	//		}
+	//	}()
 
 	log.Printf("Listening on :%s", config.InternalBindPort)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", config.InternalBindPort), mux)
