@@ -82,7 +82,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				res[args[1]] = animeStatus{args[1], 0, usr, time.Now()}
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Added %s.", args[1]))
 				//Upadates Legacy Bot's list
-				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s 0", args[1]))
+				//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s 0", args[1]))
 			} else {
 				//Checks to see if the user has already added this anime
 				for n, _ := range v.Members {
@@ -122,7 +122,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 				delete(res, args[1])
 				chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
 				//Upadates Legacy Bot's list
-				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
+				//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
 			}
 		}
 	case "del":
@@ -137,7 +137,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			delete(res, args[1])
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Deleted %s.", args[1]))
 			//Upadates Legacy Bot's list
-			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
+			//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime del %s", args[1]))
 		}
 	case "rename":
 		{
@@ -169,7 +169,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			delete(res, args[1])
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("Renamed %s to %s.", args[1], args[2]))
 			//Upadates Legacy Bot's list
-			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime mv %s %s", args[1], args[2]))
+			//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime mv %s %s", args[1], args[2]))
 		}
 	case "incr", "decr":
 		{
@@ -206,10 +206,10 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 
 			if args[0] == "incr" {
 				//Upadates Legacy Bot's list
-				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
+				//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
 			} else {
 				//Upadates Legacy Bot's list
-				chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime decr %s", args[1]))
+				//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime decr %s", args[1]))
 			}
 		}
 	case "set":
@@ -241,7 +241,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			res[args[1]] = v
 			chat.SendMessageToChannel(m.ChannelID, fmt.Sprintf("%s - %d (%s)", v.Name, v.CurrentEpisode, v.LastModified.Format("Mon, January 02")))
 			//Upadates Legacy Bot's list
-			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s %s", args[1], args[2]))
+			//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime set %s %s", args[1], args[2]))
 		}
 	case "get":
 		{
@@ -374,7 +374,7 @@ func AnimeStatus(m *discordgo.MessageCreate, args []string) error {
 			time.Sleep(300 * time.Millisecond)
 			JunbiOK(m, v.Members)
 			//Upadates Legacy Bot's list
-			chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
+			//chat.SendPrivateMessageTo(config.AssociatedBotID, fmt.Sprintf("!anime incr %s", args[1]))
 		}
 	}
 	//Write the modified value to the Redis database
