@@ -30,7 +30,7 @@ func help(m *discordgo.MessageCreate, args []string) error {
 }
 
 func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	handlers.WriteToFile(m, nil)
+	//handlers.WriteToFile(m, nil)
 
 	args := argSplit.FindAllString(m.Content, -1)
 	if len(args) == 0 {
@@ -110,7 +110,7 @@ func main() {
 	mapping["mtg"] = handlers.MTGSearch
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/searchresult", handlers.SearchResults)
+	//mux.HandleFunc("/searchresult", handlers.SearchResults)
 	chat.ConnectToWebsocket(config.BotToken, onMessage)
 
 	//	ticker := time.NewTicker(time.Second * 5)
