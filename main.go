@@ -83,7 +83,7 @@ func main() {
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", "localhost:6379")
+			c, err := redis.Dial("tcp", config.RedisServerAddress)
 			if err != nil {
 				return nil, err
 			}
